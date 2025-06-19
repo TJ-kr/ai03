@@ -1,0 +1,44 @@
+# 자판기 매출 자동화 시스템 설정
+
+# 웹사이트 설정
+website:
+  url: "toygo.smartm.co.kr"
+  login_id: "${VENDING_LOGIN_ID}"
+  login_password: "${VENDING_LOGIN_PASSWORD}"
+
+# 스케줄링 설정
+schedule:
+  daily_time: "09:50"
+  timezone: "Asia/Seoul"
+
+# 구글 드라이브 설정
+google_drive:
+  folder_id: "${GOOGLE_DRIVE_FOLDER_ID}"
+  credentials_file: "credentials/google_credentials.json"
+
+# 이메일 설정
+email:
+  smtp_server: "${SMTP_SERVER}"
+  smtp_port: "${SMTP_PORT}"
+  sender_email: "${SENDER_EMAIL}"
+  sender_password: "${SENDER_PASSWORD}"
+  recipient_emails: "${RECIPIENT_EMAILS}"
+
+# 데이터 처리 설정
+data_processing:
+  download_folder: "data/downloads"
+  processed_folder: "data/processed"
+  reports_folder: "data/reports"
+  
+# 로깅 설정
+logging:
+  level: "INFO"
+  file: "logs/automation.log"
+  max_size: "10MB"
+  retention: "30 days"
+
+# 웹드라이버 설정
+webdriver:
+  headless: true
+  timeout: 30
+  retry_attempts: 3 

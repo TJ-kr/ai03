@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .report-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-table th, .data-table td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .data-table th {
+            background-color: #f2f2f2;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            color: #2980b9;
+            font-weight: bold;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1><span class="emoji">📊</span> 자판기 매출 보고서</h1>
+        <p>생성일시: {{ generation_time }}</p>
+    </div>
+
+    <div class="report-section">
+        <div class="section-title"><span class="emoji">📈</span> 일일 매출 요약</div>
+        <p>기간: {{ period }}</p>
+        <p>매출액: <span class="highlight">{{ total_sales }}</span></p>
+        <p>판매 상품 수: <span class="highlight">{{ total_items }}</span></p>
+    </div>
+
+    <div class="report-section">
+        <div class="section-title"><span class="emoji">📦</span> 재고 현황</div>
+        <p>재고 상태: <span class="highlight">정상</span></p>
+    </div>
+
+    <div class="report-section">
+        <div class="section-title"><span class="emoji">📅</span> 월 누적 매출</div>
+        {% if monthly_data %}
+        <p>{{ monthly_data[0] }}: <span class="highlight">{{ monthly_data[1] }}</span></p>
+        {% else %}
+        <p>데이터 없음</p>
+        {% endif %}
+    </div>
+
+    <div class="report-section">
+        <div class="section-title"><span class="emoji">💰</span> 총계</div>
+        {% if table_data %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    {% for header in table_data[0] %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table_data[1:] %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>데이터 없음</p>
+        {% endif %}
+    </div>
+</body>
+</html> 

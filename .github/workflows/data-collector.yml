@@ -1,0 +1,119 @@
+name: TOYGO Data Collector
+
+on:
+  schedule:
+    # 매일 오전 9시 (한국 시간) 실행
+    - cron: '0 0 * * *'  # UTC 00:00 = 한국 시간 09:00
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  collect-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip
+        
+    - name: Install Chrome and ChromeDriver
+      run: |
+        # Chrome 설치
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+        # ChromeDriver 설치
+        CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f 3 | cut -d '.' -f 1)
+        wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION/chromedriver_linux64.zip
+        unzip /tmp/chromedriver.zip -d /usr/local/bin/
+        chmod +x /usr/local/bin/chromedriver
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Set up Google Cloud credentials
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+        
+    - name: Set Google Cloud project
+      run: gcloud config set project ${{ secrets.GOOGLE_PROJECT_ID }}
+        
+    - name: Create necessary directories
+      run: |
+        mkdir -p downloads
+        mkdir -p logs
+        
+    - name: Display Python version and dependencies
+      run: |
+        echo "Python version:"
+        python --version
+        echo "Installed packages:"
+        pip list
+        
+    - name: Run data collector
+      run: |
+        echo "🚀 데이터 수집 시작..."
+        echo "실행 시간: $(date)"
+        echo "작업 디렉토리: $(pwd)"
+        echo "Python 경로: $(which python)"
+        
+        python scripts/data_collector.py
+        
+        echo "✅ 데이터 수집 완료!"
+        echo "완료 시간: $(date)"
+        
+      env:
+        DOWNLOAD_DIR: ./downloads
+        LOGS_DIR: ./logs
+        
+    - name: Upload logs as artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: data-collector-logs-${{ github.run_id }}
+        path: logs/
+        retention-days: 7
+        
+    - name: Upload downloaded files as artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: downloaded-files-${{ github.run_id }}
+        path: downloads/
+        retention-days: 1
+        
+    - name: Notify on success
+      if: success()
+      run: |
+        echo "🎉 데이터 수집 성공!"
+        echo "실행 시간: $(date)"
+        echo "GitHub Actions 실행 ID: ${{ github.run_id }}"
+        
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ 데이터 수집 실패!"
+        echo "실행 시간: $(date)"
+        echo "GitHub Actions 실행 ID: ${{ github.run_id }}"
+        echo "로그를 확인해주세요."
+        
+    - name: Clean up
+      if: always()
+      run: |
+        echo "🧹 정리 작업 시작..."
+        rm -rf downloads/*
+        rm -rf logs/*
+        echo "정리 완료!" 
